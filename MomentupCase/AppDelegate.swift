@@ -13,6 +13,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        let appearanceNew = UINavigationBarAppearance()
+        appearanceNew.configureWithOpaqueBackground()
+        appearanceNew.backgroundColor = .white
+      
+        
+        UINavigationBar.appearance().isTranslucent = true
+        UINavigationBar.appearance().standardAppearance = appearanceNew
+        UINavigationBar.appearance().scrollEdgeAppearance =  UINavigationBar.appearance().standardAppearance
+        UINavigationBar.appearance().tintColor = .black
         // Override point for customization after application launch.
         return true
     }
