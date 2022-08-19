@@ -6,12 +6,13 @@
 //
 
 import UIKit
+import SwiftUI
 
 class ProductDetailViewController: UIViewController {
-    var selectedProduct:Product?
-    var favoriteProducts : [String] = []
+    //    var selectedProduct:Product?
+    //    var favoriteProducts : [String] = []
     var selectedItemNumber : Int = 0
-    var bagProducts : [String] = []
+    //    var bagProducts : [String] = []
     
     @IBOutlet weak var addImage: UIImageView!
     @IBOutlet weak var likeImage: UIImageView!
@@ -22,34 +23,45 @@ class ProductDetailViewController: UIViewController {
     @IBOutlet weak var leftView: UIView!
     @IBOutlet weak var imageView: UIView!
     @IBOutlet weak var bottomLabel: UILabel!
-    
+    var viewModal = ProductDetailViewModel()
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupUi()
+        
+        startApp()
+        //        setupUi()
+        
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        print(selectedProduct)
-        if selectedProduct!.isFavorite == true{
+    
+    func startApp (){
+        
+        setupUi(selectNumber: selectedItemNumber)
+        viewModal.selectedProduct = viewModal.sortedProducts![self.selectedItemNumber]
+        if viewModal.sortedProducts![selectedItemNumber].isFavorite == true{
             likeImage.image = UIImage(named: "Group 52")
         }else{
             likeImage.image = UIImage(named: "Group 51")
         }
-        if selectedProduct!.isInBag == true{
+        if viewModal.sortedProducts![selectedItemNumber].isInBag == true{
             addImage.image = UIImage(systemName: "bag.fill")
             
         }else{
             addImage.image = UIImage(systemName: "bag")
-            
         }
     }
+    override func viewWillAppear(_ animated: Bool) {
+        
+    }
     
-    func setupUi(){
-        self.title = "\(selectedProduct!.name)"
-        productImage.image = UIImage(named: selectedProduct!.imageName)
-        headerLabel.text = "\(selectedProduct!.category)\n\(selectedProduct!.name)/\(selectedProduct!.color)"
-        bottomLabel.text = "\(selectedProduct!.price) \(selectedProduct!.currency)"
+    
+    
+    func setupUi(selectNumber:Int){
+        
+        self.title = "\(viewModal.sortedProducts![selectNumber].name)"
+        productImage.image = UIImage(named: viewModal.sortedProducts![selectNumber].imageName)
+        headerLabel.text = "\(viewModal.sortedProducts![selectNumber].category)\n\(viewModal.sortedProducts![selectNumber].name)/\(viewModal.sortedProducts![selectNumber].color)"
+        bottomLabel.text = "\(viewModal.sortedProducts![selectNumber].price) \(viewModal.sortedProducts![selectNumber].currency)"
         rightView.layer.borderWidth = 1
         rightView.layer.borderColor = UIColor(named: "grey")?.cgColor
         rightView.layer.cornerRadius = rightView.frame.height*0.5
@@ -62,51 +74,11 @@ class ProductDetailViewController: UIViewController {
         rightView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(rightViewTapped)))
     }
     // MARK: - Buttons  Func.
-
+    
     @objc func rightViewTapped() {
-        if selectedProduct?.isInBag != true{
-            selectedProduct?.isInBag = true
-            
-            addImage.image = UIImage(systemName: "bag.fill")
-            bagProducts.append(String(selectedItemNumber))
-            Utils.saveLocal(array: bagProducts, key: "bagProducts")
-            
-        }else{
-            selectedProduct?.isInBag = false
-            
-            addImage.image = UIImage(systemName: "bag")
-            bagProducts = bagProducts.filter({$0 != "\(selectedItemNumber)" })
-            Utils.saveLocal(array: bagProducts, key: "bagProducts")
-            
-        }
-        
-        
+        viewModal.addTapped(addImage: addImage)
     }
     @objc func leftViewTapped() {
-        if selectedProduct?.isFavorite != true{
-            selectedProduct?.isFavorite = true
-            favoriteProducts.append(String(selectedItemNumber))
-            likeImage.image = UIImage(named: "Group 52")
-            Utils.saveLocal(array: favoriteProducts, key: "favProducts")
-            
-            
-        }else{
-            favoriteProducts = favoriteProducts.filter({$0 != "\(selectedItemNumber)" })
-            selectedProduct?.isFavorite = false
-            likeImage.image = UIImage(named: "Group 51")
-            Utils.saveLocal(array: favoriteProducts, key: "favProducts")
-            
-        }
+        viewModal.favoriteTapped(favoriteImage: likeImage)
     }
-    
-    /*
-     // MARK: - Navigation
-     
-     // In a storyboard-based application, you will often want to do a little preparation before navigation
-     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-     // Get the new view controller using segue.destination.
-     // Pass the selected object to the new view controller.
-     }
-     */
-    
 }

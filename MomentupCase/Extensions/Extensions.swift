@@ -9,6 +9,7 @@ import Foundation
 import AVFAudio
 import Lottie
 class Utils{
+    static var sortedProducts : [Product]?
     static func saveLocal (array:[String], key : String){
     let defaults = UserDefaults.standard
     defaults.set(array, forKey: key)

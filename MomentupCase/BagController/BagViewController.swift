@@ -12,11 +12,10 @@ class BagViewController: UIViewController, AVAudioPlayerDelegate {
     var allProductsList : [Product] = []
     var bagProductList : [Product] = []
     var bagProductsNumbers : [String] = []
-    var sumofFeeText = ""
-    var bagProductCountText = ""
+    
     var player : AVAudioPlayer?
     let animationView = AnimationView()
-    
+    let viewModel = BagViewModel()
     @IBOutlet weak var purchaseButton: UIButton!
     @IBOutlet weak var feeofAllProducts: UILabel!
     @IBOutlet weak var amountofProducts: UILabel!
@@ -25,23 +24,19 @@ class BagViewController: UIViewController, AVAudioPlayerDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUi()
-        for a in bagProductsNumbers{
-            print(a)
-            let product = allProductsList.filter({$0.name == a })
-            print(product)
-            bagProductList.append(product[0])
-        }
+        viewModel.arrangeArray()
+        viewModel.calculatePrice()
+        
         bagTableview.reloadData()
-        // Do any additional setup after loading the view.
+        
     }
     
     override func viewWillAppear(_ animated: Bool) {
-        amountofProducts.text = ":  \(bagProductList.count)"
-        feeofAllProducts.text = ":  \(calculatePrice(products: bagProductList))"
-        sumofFeeText = ":  \(calculatePrice(products: bagProductList))"
-        bagProductCountText = ":  \(bagProductList.count)"
+        amountofProducts.text = ":  \(viewModel.bagProductList.count)"
+        feeofAllProducts.text = ":  \(viewModel.totalPrice)"
+        
         purchaseButton.layer.cornerRadius = purchaseButton.frame.height*0.5
-        if bagProductList.count == 0{
+        if viewModel.bagProductList.count == 0{
             purchaseButton.isEnabled = false
             purchaseButton.backgroundColor = .lightGray
         }else{
@@ -57,28 +52,15 @@ class BagViewController: UIViewController, AVAudioPlayerDelegate {
         bagTableview.separatorStyle = .none
     }
     
-    func calculatePrice(products:[Product])->String{
-        let sum0fFee = bagProductList.map({$0.price}).reduce(0, +)
-        let roundedPrice = Double(round(1000 * sum0fFee) / 1000)
-        return String(roundedPrice)
-    }
+    
     // MARK: - Buttons Func.
     
     @objc func removeButtonClicked(sender: UIButton?) {
-        let tag = sender!.tag
-        print(bagProductsNumbers)
-        bagProductsNumbers = bagProductsNumbers.filter({$0 != bagProductList[tag].name })
         
-        bagProductList = bagProductList.filter({$0.name != bagProductList[tag].name })
+        viewModel.removeProduct(index: sender!.tag)
         
-        feeofAllProducts.text = ":  \(calculatePrice(products: bagProductList))"
-        sumofFeeText = ":  \(calculatePrice(products: bagProductList))"
-        
-        
-        amountofProducts.text = ":  \(bagProductList.count)"
-        print(bagProductsNumbers)
-        Utils.saveLocal(array: bagProductsNumbers, key: "bagProducts")
-        
+        amountofProducts.text = ":  \(viewModel.bagProductList.count)"
+        feeofAllProducts.text = ":  \(viewModel.totalPrice)"
         bagTableview.reloadData()
     }
     
@@ -87,11 +69,12 @@ class BagViewController: UIViewController, AVAudioPlayerDelegate {
         
         playMusic(name: "correctSound", type: "mp3")
         let destinationVC = self.storyboard?.instantiateViewController(identifier: "PurchaseViewController") as! PurchaseViewController
-        destinationVC.feeText = sumofFeeText
-        destinationVC.amounthText = bagProductCountText
+        
         Utils.saveLocal(array: [], key: "bagProducts")
         Utils.saveLocal(array: [], key: "favProducts")
-        DispatchQueue.main.asyncAfter(deadline: .now()+2) {
+        DispatchQueue.main.asyncAfter(deadline: .now()+2) { [self] in
+            destinationVC.feeText = viewModel.totalPrice
+            destinationVC.amounthText = String(viewModel.bagProductList.count)
             self.navigationController?.pushViewController(destinationVC, animated: true)
         }
         
@@ -145,26 +128,17 @@ class BagViewController: UIViewController, AVAudioPlayerDelegate {
             }
         }
     }
-    /*
-     // MARK: - Navigation
-     
-     // In a storyboard-based application, you will often want to do a little preparation before navigation
-     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-     // Get the new view controller using segue.destination.
-     // Pass the selected object to the new view controller.
-     }
-     */
     
 }
 extension BagViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return bagProductList.count
+        return viewModel.bagProductList.count
     }
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "bagCell", for: indexPath) as! BagTableViewCell
-        cell.imageProduct.image = UIImage(named: bagProductList[indexPath.row].imageName)
-        cell.headerLabel.text = "\(bagProductList[indexPath.row].name)-\(bagProductList[indexPath.row].color) \(bagProductList[indexPath.row].category)"
-        cell.descriptionLabel.text = "\(bagProductList[indexPath.row].price) \(bagProductList[indexPath.row].currency)"
+        cell.imageProduct.image = UIImage(named: viewModel.bagProductList[indexPath.row].imageName)
+        cell.headerLabel.text = "\(viewModel.bagProductList[indexPath.row].name)-\(viewModel.bagProductList[indexPath.row].color) \(viewModel.bagProductList[indexPath.row].category)"
+        cell.descriptionLabel.text = "\(viewModel.bagProductList[indexPath.row].price) \(viewModel.bagProductList[indexPath.row].currency)"
         cell.removeButton.tag = indexPath.row
         cell.removeButton.addTarget(self, action: #selector(removeButtonClicked), for: UIControl.Event.touchUpInside)
         cell.selectionStyle = .none;

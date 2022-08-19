@@ -16,12 +16,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         let appearanceNew = UINavigationBarAppearance()
         appearanceNew.configureWithOpaqueBackground()
         appearanceNew.backgroundColor = .white
-      
-        
+
+
         UINavigationBar.appearance().isTranslucent = true
         UINavigationBar.appearance().standardAppearance = appearanceNew
         UINavigationBar.appearance().scrollEdgeAppearance =  UINavigationBar.appearance().standardAppearance
         UINavigationBar.appearance().tintColor = .black
+//        app.router.start()
+
         // Override point for customization after application launch.
         return true
     }
